@@ -56,16 +56,18 @@ overflow:hidden;
 }
 
 .card img{
-width:100%;
-aspect-ratio:3/4;
-object-fit:cover;
+    width:100%;
+    height:260px;
+    object-fit:contain;
+    background:#222;
+    border-radius:12px;
 }
 
 /* اطلاعات */
 .info{
-padding:8px;
-background:#151515;
-text-align:center;
+    padding:8px;
+    background:#151515;
+    text-align:center;
 }
 
 .info p{
