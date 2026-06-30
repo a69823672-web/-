@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>کافه پرواز</title>
+
+<style>
+body{
+    margin:0;
+    font-family:tahoma;
+    background:#0f0f0f;
+    color:#eee;
+}
+
+header{
+    text-align:center;
+    padding:20px;
+    background:#1a1a1a;
+    border-bottom:1px solid #333;
+}
+
+.logo{
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    background:#333;
+    margin:auto;
+    object-fit:cover;
+}
+
+h1{margin:10px 0;}
+
+.container{
+    padding:20px;
+}
+
+.section h2{
+    color:#aaa;
+    border-bottom:1px solid #333;
+    padding-bottom:5px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:10px;
+}
+
+.card{
+    background:#1c1c1c;
+    border-radius:10px;
+    padding:10px;
+    text-align:center;
+}
+
+.card img{
+    width:100%;
+    height:120px;
+    object-fit:cover;
+    border-radius:8px;
+    background:#333;
+}
+
+.adminBtn{
+    position:fixed;
+    bottom:20px;
+    left:20px;
+    background:#444;
+    color:white;
+    border:none;
+    padding:10px 15px;
+    border-radius:8px;
+}
+
+.panel{
+    position:fixed;
+    inset:0;
+    background:#000000ee;
+    display:none;
+    overflow:auto;
+    padding:20px;
+}
+
+input,select,textarea{
+    width:100%;
+    margin:5px 0;
+    padding:8px;
+    background:#222;
+    color:#fff;
+    border:1px solid #444;
+}
+
+button{
+    margin-top:5px;
+    padding:8px;
+    background:#444;
+    color:#fff;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+button:hover{background:#666;}
+
+.itemRow{
+    background:#1b1b1b;
+    padding:8px;
+    margin:5px 0;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<img id="logo" class="logo" src="" alt="logo">
+<h1>کافه پرواز</h1>
+<p>شرکت هوانوردی عقاب آسمان شمال</p>
+</header>
+
+<div class="container" id="menu"></div>
+
+<button class="adminBtn" onclick="openPanel()">پنل مدیریت</button>
+
+<div class="panel" id="panel">
+
+<h2>پنل مدیریت</h2>
+
+<input type="password" id="pass" placeholder="رمز (4030)">
+<button onclick="login()">ورود</button>
+
+<div id="adminArea" style="display:none">
+
+<h3>لوگو</h3>
+<input type="file" id="logoUpload">
+
+<hr>
+
+<h3>افزودن محصول</h3>
+
+<input id="name" placeholder="نام محصول">
+
+<select id="category">
+<option>نوشیدنی بر پایه قهوه</option>
+<option>نوشیدنی سرد قهوه</option>
+<option>نوشیدنی شرکتی</option>
+<option>نوشیدنی گرم</option>
+<option>سایر</option>
+</select>
+
+<input type="file" id="imgUpload">
+
+<button onclick="addItem()">افزودن</button>
+
+<hr>
+
+<h3>محصولات</h3>
+<div id="list"></div>
+
+<button onclick="closePanel()">بستن</button>
+
+</div>
+</div>
+
+<script>
+
+let menu = JSON.parse(localStorage.getItem("menu")) || [];
+
+let logo = localStorage.getItem("logo") || "";
+if(logo) document.getElementById("logo").src = logo;
+
+// رندر منو
+function render(){
+let container = document.getElementById("menu");
+container.innerHTML="";
+
+let groups = {};
+
+menu.forEach((item,i)=>{
+if(!groups[item.category]) groups[item.category]=[];
+groups[item.category].push({...item,index:i});
+});
+
+for(let cat in groups){
+let section = document.createElement("div");
+section.innerHTML = `<h2>${cat}</h2>`;
+
+let grid = document.createElement("div");
+grid.className="grid";
+
+groups[cat].forEach(item=>{
+grid.innerHTML += `
+<div class="card">
+<img src="${item.img}">
+<p>${item.name}</p>
+</div>
+`;
+});
+
+section.appendChild(grid);
+container.appendChild(section);
+}
+}
+render();
+
+// پنل
+function openPanel(){
+document.getElementById("panel").style.display="block";
+renderList();
+}
+
+function closePanel(){
+document.getElementById("panel").style.display="none";
+}
+
+function login(){
+if(document.getElementById("pass").value==="4030"){
+document.getElementById("adminArea").style.display="block";
+}else{
+alert("رمز اشتباه است");
+}
+}
+
+// افزودن محصول
+function addItem(){
+let name = document.getElementById("name").value;
+let category = document.getElementById("category").value;
+let file = document.getElementById("imgUpload").files[0];
+
+if(!name || !file) return alert("نام و عکس لازم است");
+
+let reader = new FileReader();
+
+reader.onload = function(){
+menu.push({
+name:name,
+category:category,
+img:reader.result
+});
+
+localStorage.setItem("menu",JSON.stringify(menu));
+render();
+renderList();
+
+document.getElementById("name").value="";
+};
+
+reader.readAsDataURL(file);
+}
+
+// لوگو
+document.getElementById("logoUpload").onchange = function(e){
+let file = e.target.files[0];
+let reader = new FileReader();
+
+reader.onload = function(){
+document.getElementById("logo").src = reader.result;
+localStorage.setItem("logo",reader.result);
+};
+
+reader.readAsDataURL(file);
+};
+
+// لیست مدیریت
+function renderList(){
+let list = document.getElementById("list");
+list.innerHTML="";
+
+menu.forEach((item,i)=>{
+list.innerHTML += `
+<div class="itemRow">
+<span>${item.name}</span>
+<button onclick="del(${i})">حذف</button>
+</div>
+`;
+});
+}
+
+// حذف
+function del(i){
+menu.splice(i,1);
+localStorage.setItem("menu",JSON.stringify(menu));
+render();
+renderList();
+}
+
+</script>
+
+</body>
+</html>
